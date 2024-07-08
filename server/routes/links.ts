@@ -48,6 +48,15 @@ router.delete(
   asyncHandler(link.remove)
 );
 
+router.post(
+  "/reset/:id",
+  asyncHandler(auth.apikey),
+  asyncHandler(auth.jwt),
+  validators.resetLink,
+  asyncHandler(helpers.verify),
+  asyncHandler(link.reset)
+);
+
 router.get(
   "/:id/stats",
   asyncHandler(auth.apikey),

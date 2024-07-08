@@ -174,6 +174,21 @@ export const remove: Handler = async (req, res) => {
     .send({ message: "Link has been deleted successfully." });
 };
 
+export const reset: Handler = async (req, res) => {
+  const link = await query.link.reset({
+    uuid: req.params.id,
+    ...(!req.user.admin && { user_id: req.user.id })
+  });
+
+  if (!link) {
+    throw new CustomError("Could not reset view count of the link");
+  }
+
+  return res
+    .status(200)
+    .send({ message: "The view count has been reset successfully." });
+};
+
 export const report: Handler = async (req, res) => {
   const { link } = req.body;
 

@@ -73,6 +73,7 @@ export interface Links {
   set: Action<Links, LinksListRes>;
   update: Action<Links, Partial<Link>>;
   remove: Thunk<Links, string>;
+  reset: Thunk<Links, string>;
   edit: Thunk<Links, EditLink>;
   ban: Thunk<Links, BanLink>;
   setLoading: Action<Links, boolean>;
@@ -103,6 +104,9 @@ export const links: Links = {
   }),
   remove: thunk(async (actions, id) => {
     await axios.delete(`${APIv2.Links}/${id}`, getAxiosConfig());
+  }),
+  reset: thunk(async (actions, id) => {
+    await axios.post(`${APIv2.Links}/reset/${id}`, {}, getAxiosConfig());
   }),
   ban: thunk(async (actions, { id, ...payload }) => {
     const res = await axios.post(
