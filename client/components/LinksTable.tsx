@@ -93,7 +93,7 @@ const shortLinkFlex = { flexGrow: [1, 1, 3], flexShrink: [1, 1, 3] };
 const viewsFlex = {
   flexGrow: [0.5, 0.5, 1],
   flexShrink: [0.5, 0.5, 1],
-  justifyContent: "flex-end"
+  justifyContent: "flex-start"
 };
 const actionsFlex = { flexGrow: [1, 1, 3], flexShrink: [1, 1, 3] };
 
@@ -248,13 +248,13 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal, setResetModal }) => {
           <ALink href={link.link}>{removeProtocol(link.link)}</ALink>
         </Td>
         <Td {...viewsFlex}>
-          <Text marginRight="0.5rem">
+          <Text margin="0 0.5rem 0 0.5rem">
             {withComma(link.visit_count)}
           </Text>
           { link.visit_count > 0 && (
             <Action
               mr={0}
-              name="trash"
+              name="trash" // TODO: use reset icon
               strokeWidth="2"
               stroke={Colors.TrashIcon}
               backgroundColor={Colors.TrashIconBg}

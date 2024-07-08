@@ -51,7 +51,7 @@ const icons = {
   signup: Signup,
   spinner: Spinner,
   stop: Stop,
-  trash: Trash,
+  trash: Trash, // TODO: add reset icon
   x: X,
   zap: Zap
 };
