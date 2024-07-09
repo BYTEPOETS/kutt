@@ -254,10 +254,10 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal, setResetModal }) => {
           { link.visit_count > 0 && (
             <Action
               mr={0}
-              name="trash" // TODO: use reset icon
+              name="reset"
               strokeWidth="2"
-              stroke={Colors.TrashIcon}
-              backgroundColor={Colors.TrashIconBg}
+              stroke={Colors.ResetIcon}
+              backgroundColor={Colors.ResetIconBg}
               onClick={() => setResetModal(index)}
             />
           )}

@@ -28,6 +28,7 @@ import Send from "./Send";
 import Key from "./Key";
 import Zap from "./Zap";
 import X from "./X";
+import Reset from "./Reset";
 
 const icons = {
   arrowLeft: ArrowLeft,
@@ -51,7 +52,8 @@ const icons = {
   signup: Signup,
   spinner: Spinner,
   stop: Stop,
-  trash: Trash, // TODO: add reset icon
+  trash: Trash,
+  reset: Reset,
   x: X,
   zap: Zap
 };
