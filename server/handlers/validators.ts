@@ -241,7 +241,7 @@ export const deleteLink = [
     .isLength({ min: 36, max: 36 })
 ];
 
-export const resetLink = [
+export const resetLinkVisitCount = [
   param("id", "ID is invalid.")
     .exists({
       checkFalsy: true,

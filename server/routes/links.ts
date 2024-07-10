@@ -48,13 +48,13 @@ router.delete(
   asyncHandler(link.remove)
 );
 
-router.post(
-  "/reset/:id",
+router.patch(
+  "/reset-visit-count/:id",
   asyncHandler(auth.apikey),
   asyncHandler(auth.jwt),
-  validators.resetLink,
+  validators.resetLinkVisitCount,
   asyncHandler(helpers.verify),
-  asyncHandler(link.reset)
+  asyncHandler(link.resetVisitCount)
 );
 
 router.get(

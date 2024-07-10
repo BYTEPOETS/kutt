@@ -174,8 +174,8 @@ export const remove: Handler = async (req, res) => {
     .send({ message: "Link has been deleted successfully." });
 };
 
-export const reset: Handler = async (req, res) => {
-  const link = await query.link.reset({
+export const resetVisitCount: Handler = async (req, res) => {
+  const link = await query.link.resetVisitCount({
     uuid: req.params.id,
     ...(!req.user.admin && { user_id: req.user.id })
   });

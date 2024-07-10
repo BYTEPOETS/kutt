@@ -163,7 +163,7 @@ export const remove = async (match: Partial<Link>) => {
   return !!deletedLink;
 };
 
-export const reset = async (match: Partial<Link>) => {
+export const resetVisitCount = async (match: Partial<Link>) => {
   const link = await knex<Link>("links")
     .where(match)
     .first();
