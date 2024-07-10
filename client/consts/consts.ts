@@ -58,5 +58,7 @@ export enum Colors {
   TableShadow = "hsla(200, 20%, 70%, 0.3)",
   Text = "hsl(200, 35%, 25%)",
   TrashIcon = "hsl(0, 100%, 69%)",
-  TrashIconBg = "hsl(0, 100%, 96%)"
+  TrashIconBg = "hsl(0, 100%, 96%)",
+  ResetIcon = "hsl(218, 100%, 64%)",
+  ResetIconBg = "hsl(220, 100%, 96%)"
 }

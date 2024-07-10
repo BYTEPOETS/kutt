@@ -241,6 +241,15 @@ export const deleteLink = [
     .isLength({ min: 36, max: 36 })
 ];
 
+export const resetLinkVisitCount = [
+  param("id", "ID is invalid.")
+    .exists({
+      checkFalsy: true,
+      checkNull: true
+    })
+    .isLength({ min: 36, max: 36 })
+];
+
 export const reportLink = [
   body("link", "No link has been provided.")
     .exists({

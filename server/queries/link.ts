@@ -163,6 +163,24 @@ export const remove = async (match: Partial<Link>) => {
   return !!deletedLink;
 };
 
+export const resetVisitCount = async (match: Partial<Link>) => {
+  const link = await knex<Link>("links")
+    .where(match)
+    .first();
+
+  if (!link) {
+    throw new CustomError("Link was not found.");
+  }
+
+  const resetLink = await knex<Link>("links")
+    .where("id", link.id)
+    .update({...link, visit_count: 0, updated_at: new Date().toISOString()}, "*");
+
+  redis.remove.link(link);
+
+  return !!resetLink;
+};
+
 export const batchRemove = async (match: Match<Link>) => {
   const deleteQuery = knex<Link>("links");
   const findQuery = knex<Link>("links");

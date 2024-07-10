@@ -91,9 +91,9 @@ const ogLinkFlex = { flexGrow: [1, 3, 7], flexShrink: [1, 3, 7] };
 const createdFlex = { flexGrow: [1, 1, 2.5], flexShrink: [1, 1, 2.5] };
 const shortLinkFlex = { flexGrow: [1, 1, 3], flexShrink: [1, 1, 3] };
 const viewsFlex = {
-  flexGrow: [0.5, 0.5, 1],
-  flexShrink: [0.5, 0.5, 1],
-  justifyContent: "flex-end"
+  flexGrow: [1.5, 1.5, 1.5],
+  flexShrink: [1.5, 1.5, 1.5],
+  justifyContent: "flex-start"
 };
 const actionsFlex = { flexGrow: [1, 1, 3], flexShrink: [1, 1, 3] };
 
@@ -101,6 +101,7 @@ interface RowProps {
   index: number;
   link: LinkType;
   setDeleteModal: (number) => void;
+  setResetVisitCountModal: (number) => void;
 }
 
 interface BanForm {
@@ -118,7 +119,7 @@ interface EditForm {
   password?: string;
 }
 
-const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
+const Row: FC<RowProps> = ({ index, link, setDeleteModal, setResetVisitCountModal }) => {
   const isAdmin = useStoreState((s) => s.auth.isAdmin);
   const ban = useStoreActions((s) => s.links.ban);
   const edit = useStoreActions((s) => s.links.edit);
@@ -213,7 +214,7 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
             </Text>
           )}
         </Td>
-        <Td {...shortLinkFlex} withFade>
+        <Td {...shortLinkFlex} withFade alignItems="baseline">
           {copied ? (
             <Animation
               minWidth={32}
@@ -246,8 +247,22 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
           )}
           <ALink href={link.link}>{removeProtocol(link.link)}</ALink>
         </Td>
-        <Td {...viewsFlex}>{withComma(link.visit_count)}</Td>
-        <Td {...actionsFlex} justifyContent="flex-end">
+        <Td {...viewsFlex} alignItems="baseline">
+          <Text margin="0 0.5rem 0 0.5rem" minWidth="4ch" textAlign="end">
+            {withComma(link.visit_count)}
+          </Text>
+          { link.visit_count > 0 && (
+            <Action
+              mr={0}
+              name="reset"
+              strokeWidth="2"
+              stroke={Colors.ResetIcon}
+              backgroundColor={Colors.ResetIconBg}
+              onClick={() => setResetVisitCountModal(index)}
+            />
+          )}
+        </Td>
+        <Td {...actionsFlex} justifyContent="flex-end" alignItems="baseline">
           {link.password && (
             <>
               <Tooltip id={`${index}-tooltip-password`}>
@@ -550,11 +565,14 @@ interface Form {
 const LinksTable: FC = () => {
   const isAdmin = useStoreState((s) => s.auth.isAdmin);
   const links = useStoreState((s) => s.links);
-  const { get, remove } = useStoreActions((s) => s.links);
+  const { get, remove, resetVisitCount } = useStoreActions((s) => s.links);
   const [tableMessage, setTableMessage] = useState("No links to show.");
   const [deleteModal, setDeleteModal] = useState(-1);
+  const [resetVisitCountModal, setResetVisitCountModal] = useState(-1);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [deleteMessage, setDeleteMessage] = useMessage();
+  const [resetMessage, setResetMessage] = useMessage();
   const [formState, { label, checkbox, text }] = useFormState<Form>(
     { skip: "0", limit: "10", all: false },
     { withIds: true }
@@ -562,6 +580,7 @@ const LinksTable: FC = () => {
 
   const options = formState.values;
   const linkToDelete = links.items[deleteModal];
+  const linkToReset = links.items[resetVisitCountModal];
 
   useEffect(() => {
     get(options).catch((err) =>
@@ -584,6 +603,18 @@ const LinksTable: FC = () => {
       setDeleteMessage(errorMessage(err));
     }
     setDeleteLoading(false);
+  };
+
+  const onReset = async () => {
+    setResetLoading(true);
+    try {
+      await resetVisitCount(linkToReset.id);
+      await get(options);
+      setResetVisitCountModal(-1);
+    } catch (err) {
+      setResetMessage(errorMessage(err));
+    }
+    setResetLoading(false);
   };
 
   const onNavChange = (nextPage: number) => () => {
@@ -700,6 +731,7 @@ const LinksTable: FC = () => {
               {links.items.map((link, index) => (
                 <Row
                   setDeleteModal={setDeleteModal}
+                  setResetVisitCountModal={setResetVisitCountModal}
                   index={index}
                   link={link}
                   key={link.id}
@@ -747,6 +779,48 @@ const LinksTable: FC = () => {
                   <Button color="red" ml={3} onClick={onDelete}>
                     <Icon name="trash" stroke="white" mr={2} />
                     Delete
+                  </Button>
+                </>
+              )}
+            </Flex>
+          </>
+        )}
+      </Modal>
+      <Modal
+        id="reset-custom-domain"
+        show={resetVisitCountModal > -1}
+        closeHandler={() => setResetVisitCountModal(-1)}
+      >
+        {linkToReset && (
+          <>
+            <H2 mb={24} textAlign="center" bold>
+              Reset link?
+            </H2>
+            <Text textAlign="center">
+              Are you sure you want to reset the view count of the link{" "}
+              <Span bold>&quot;{removeProtocol(linkToReset.link)}&quot;</Span>?
+            </Text>
+            <Flex justifyContent="center" mt={44}>
+              {resetLoading ? (
+                <>
+                  <Icon name="spinner" size={20} stroke={Colors.Spinner} />
+                </>
+              ) : resetMessage.text ? (
+                <Text fontSize={15} color={resetMessage.color}>
+                  {resetMessage.text}
+                </Text>
+              ) : (
+                <>
+                  <Button
+                    color="gray"
+                    mr={3}
+                    onClick={() => setResetVisitCountModal(-1)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button color="red" ml={3} onClick={onReset}>
+                    <Icon name="reset" stroke="white" mr={2} />
+                    Reset
                   </Button>
                 </>
               )}
