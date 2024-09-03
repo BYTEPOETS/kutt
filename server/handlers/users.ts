@@ -18,7 +18,11 @@ export const getUserList: Handler = async (req, res) => {
   const { limit, skip, search } = req.query;
 
   const [users, total] = await Promise.all([
-    query.user.findAll({ limit, search, skip }),
+    query.user.findAll({
+      limit: parseInt(limit as string, 10) || 10,
+      search: search ? String(search) : '',
+      skip: parseInt(skip as string, 10) || 0
+    }),
     query.user.total()
   ]);
 

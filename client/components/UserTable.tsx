@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import { Flex } from "reflexbox/styled-components";
+import { Flex } from "rebass/styled-components";
 import { ifProp } from "styled-tools";
 import { Colors } from "../consts";
 import { useStoreActions, useStoreState } from "../store";
@@ -12,10 +12,9 @@ import { Button, NavButton } from "./Button";
 import { useFormState } from "react-use-form-state";
 import { User } from "../store/users";
 import { useMessage } from "../hooks";
-import { errorMessage, removeProtocol } from "../utils";
+import { errorMessage } from "../utils";
 import Modal from "./Modal";
 import CreateNewUserButton from "./Admin/CreateNewUser";
-import { TextInput } from "./Input";
 
 const Tr = styled(Flex).attrs({ as: "tr", px: [12, 12, 2] })``;
 const Th = styled(Flex)``;
@@ -102,7 +101,7 @@ const UsersTable = () => {
   const users = useStoreState(s => s.users);
   const { get } = useStoreActions(s => s.users);
   const [tableMessage, setTableMessage] = useState("No users to show.");
-  const [formState, { label, checkbox, text }] = useFormState<Form>(
+  const [formState] = useFormState<Form>(
     { skip: "0", limit: "10", all: false },
     { withIds: true }
   );
@@ -245,7 +244,7 @@ const Row: FC<RowProps> = ({ user, reload }) => {
   const onBan = async () => {
     setBanLoading(true);
     try {
-      const res = await ban(user.id);
+      await ban(user.id);
       setBanMessage("User banned", "green");
       setTimeout(() => {
         setBanModal(false);
@@ -334,7 +333,7 @@ const Row: FC<RowProps> = ({ user, reload }) => {
             </H2>
             <Text textAlign="center">
               Are you sure do you want to delete the user{" "}
-              <Span bold>"{user.email}"</Span>?
+              <Span bold>&quot;{user.email}&quot;</Span>?
             </Text>
             <Text textAlign="center">
               All Links created by this User will also be deleted
@@ -379,7 +378,7 @@ const Row: FC<RowProps> = ({ user, reload }) => {
             </H2>
             <Text textAlign="center">
               Are you sure do you want to ban the user{" "}
-              <Span bold>"{user.email}"</Span>?
+              <Span bold>&quot;{user.email}&quot;</Span>
             </Text>
             <Flex justifyContent="center" mt={44}>
               {banLoading ? (

@@ -1,4 +1,4 @@
-import { Flex } from "reflexbox/styled-components";
+import { Flex } from "rebass/styled-components";
 import styled, { css } from "styled-components";
 import { prop, ifProp } from "styled-tools";
 import React, { FC } from "react";
@@ -28,6 +28,7 @@ import Send from "./Send";
 import Key from "./Key";
 import Zap from "./Zap";
 import X from "./X";
+import Reset from "./Reset";
 
 const icons = {
   arrowLeft: ArrowLeft,
@@ -52,6 +53,7 @@ const icons = {
   spinner: Spinner,
   stop: Stop,
   trash: Trash,
+  reset: Reset,
   x: X,
   zap: Zap
 };

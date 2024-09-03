@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 
 import { CustomError } from "../utils";
-import * as redis from "../redis";
+import redisClient, * as redis from "../redis";
 import knex from "../knex";
 
 const selectable = [
@@ -96,7 +96,7 @@ export const get = async (match: Partial<Link>, params: GetParams) => {
 export const find = async (match: Partial<Link>): Promise<Link> => {
   if (match.address && match.domain_id) {
     const key = redis.key.link(match.address, match.domain_id);
-    const cachedLink = await redis.get(key);
+    const cachedLink = await redisClient.get(key);
     if (cachedLink) return JSON.parse(cachedLink);
   }
 
@@ -108,7 +108,7 @@ export const find = async (match: Partial<Link>): Promise<Link> => {
 
   if (link) {
     const key = redis.key.link(link.address, link.domain_id);
-    redis.set(key, JSON.stringify(link), "EX", 60 * 60 * 2);
+    redisClient.set(key, JSON.stringify(link), "EX", 60 * 60 * 2);
   }
 
   return link;
@@ -163,6 +163,24 @@ export const remove = async (match: Partial<Link>) => {
   return !!deletedLink;
 };
 
+export const resetVisitCount = async (match: Partial<Link>) => {
+  const link = await knex<Link>("links")
+    .where(match)
+    .first();
+
+  if (!link) {
+    throw new CustomError("Link was not found.");
+  }
+
+  const resetLink = await knex<Link>("links")
+    .where("id", link.id)
+    .update({...link, visit_count: 0, updated_at: new Date().toISOString()}, "*");
+
+  redis.remove.link(link);
+
+  return !!resetLink;
+};
+
 export const batchRemove = async (match: Match<Link>) => {
   const deleteQuery = knex<Link>("links");
   const findQuery = knex<Link>("links");
@@ -180,6 +198,11 @@ export const batchRemove = async (match: Match<Link>) => {
 };
 
 export const update = async (match: Partial<Link>, update: Partial<Link>) => {
+  if (update.password) {
+    const salt = await bcrypt.genSalt(12);
+    update.password = await bcrypt.hash(update.password, salt);
+  }
+
   const links = await knex<Link>("links")
     .where(match)
     .update({ ...update, updated_at: new Date().toISOString() }, "*");
@@ -189,7 +212,7 @@ export const update = async (match: Partial<Link>, update: Partial<Link>) => {
   return links;
 };
 
-export const increamentVisit = async (match: Partial<Link>) => {
+export const incrementVisit = async (match: Partial<Link>) => {
   return knex<Link>("links")
     .where(match)
     .increment("visit_count", 1);

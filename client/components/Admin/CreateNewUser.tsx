@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useState } from "react";
-import { Flex } from "reflexbox/styled-components";
+import { Flex } from "rebass/styled-components";
 import Text, { H2 } from "../Text";
 import { Button } from "../Button";
 import Modal from "../Modal";

@@ -3,7 +3,7 @@ import axios from "axios";
 import query from "query-string";
 
 import { getAxiosConfig } from "../utils";
-import { API, APIv2 } from "../consts";
+import { APIv2 } from "../consts";
 
 export interface Link {
   id: string;
@@ -73,6 +73,7 @@ export interface Links {
   set: Action<Links, LinksListRes>;
   update: Action<Links, Partial<Link>>;
   remove: Thunk<Links, string>;
+  resetVisitCount: Thunk<Links, string>;
   edit: Thunk<Links, EditLink>;
   ban: Thunk<Links, BanLink>;
   setLoading: Action<Links, boolean>;
@@ -103,6 +104,9 @@ export const links: Links = {
   }),
   remove: thunk(async (actions, id) => {
     await axios.delete(`${APIv2.Links}/${id}`, getAxiosConfig());
+  }),
+  resetVisitCount: thunk(async (actions, id) => {
+    await axios.patch(`${APIv2.Links}/reset-visit-count/${id}`, {}, getAxiosConfig());
   }),
   ban: thunk(async (actions, { id, ...payload }) => {
     const res = await axios.post(

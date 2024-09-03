@@ -2,12 +2,11 @@ import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import React, { FC, useState, useEffect } from "react";
 import { useFormState } from "react-use-form-state";
-import { Flex } from "reflexbox/styled-components";
+import { Flex } from "rebass/styled-components";
 import styled, { css } from "styled-components";
 import { ifProp } from "styled-tools";
 import getConfig from "next/config";
 import QRCode from "qrcode.react";
-import Link from "next/link";
 import differenceInMilliseconds from "date-fns/differenceInMilliseconds";
 import ms from "ms";
 
@@ -92,9 +91,9 @@ const ogLinkFlex = { flexGrow: [1, 3, 7], flexShrink: [1, 3, 7] };
 const createdFlex = { flexGrow: [1, 1, 2.5], flexShrink: [1, 1, 2.5] };
 const shortLinkFlex = { flexGrow: [1, 1, 3], flexShrink: [1, 1, 3] };
 const viewsFlex = {
-  flexGrow: [0.5, 0.5, 1],
-  flexShrink: [0.5, 0.5, 1],
-  justifyContent: "flex-end"
+  flexGrow: [1.5, 1.5, 1.5],
+  flexShrink: [1.5, 1.5, 1.5],
+  justifyContent: "flex-start"
 };
 const actionsFlex = { flexGrow: [1, 1, 3], flexShrink: [1, 1, 3] };
 
@@ -102,6 +101,7 @@ interface RowProps {
   index: number;
   link: LinkType;
   setDeleteModal: (number) => void;
+  setResetVisitCountModal: (number) => void;
 }
 
 interface BanForm {
@@ -116,14 +116,15 @@ interface EditForm {
   address: string;
   description?: string;
   expire_in?: string;
+  password?: string;
 }
 
-const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
-  const isAdmin = useStoreState(s => s.auth.isAdmin);
-  const ban = useStoreActions(s => s.links.ban);
-  const edit = useStoreActions(s => s.links.edit);
+const Row: FC<RowProps> = ({ index, link, setDeleteModal, setResetVisitCountModal }) => {
+  const isAdmin = useStoreState((s) => s.auth.isAdmin);
+  const ban = useStoreActions((s) => s.links.ban);
+  const edit = useStoreActions((s) => s.links.edit);
   const [banFormState, { checkbox }] = useFormState<BanForm>();
-  const [editFormState, { text, label }] = useFormState<EditForm>(
+  const [editFormState, { text, label, password }] = useFormState<EditForm>(
     {
       target: link.target,
       address: link.address,
@@ -132,7 +133,8 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
         ? ms(differenceInMilliseconds(new Date(link.expire_in), new Date()), {
             long: true
           })
-        : ""
+        : "",
+      password: ""
     },
     { withIds: true }
   );
@@ -175,11 +177,12 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
     } catch (err) {
       setEditMessage(errorMessage(err));
     }
+    editFormState.setField("password", "");
     setEditLoading(false);
   };
 
   const toggleEdit = () => {
-    setShowEdit(s => !s);
+    setShowEdit((s) => !s);
     if (showEdit) editFormState.reset();
     setEditMessage("");
   };
@@ -211,7 +214,7 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
             </Text>
           )}
         </Td>
-        <Td {...shortLinkFlex} withFade>
+        <Td {...shortLinkFlex} withFade alignItems="baseline">
           {copied ? (
             <Animation
               minWidth={32}
@@ -244,8 +247,22 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
           )}
           <ALink href={link.link}>{removeProtocol(link.link)}</ALink>
         </Td>
-        <Td {...viewsFlex}>{withComma(link.visit_count)}</Td>
-        <Td {...actionsFlex} justifyContent="flex-end">
+        <Td {...viewsFlex} alignItems="baseline">
+          <Text margin="0 0.5rem 0 0.5rem" minWidth="4ch" textAlign="end">
+            {withComma(link.visit_count)}
+          </Text>
+          { link.visit_count > 0 && (
+            <Action
+              mr={0}
+              name="reset"
+              strokeWidth="2"
+              stroke={Colors.ResetIcon}
+              backgroundColor={Colors.ResetIconBg}
+              onClick={() => setResetVisitCountModal(index)}
+            />
+          )}
+        </Td>
+        <Td {...actionsFlex} justifyContent="flex-end" alignItems="baseline">
           {link.password && (
             <>
               <Tooltip id={`${index}-tooltip-password`}>
@@ -277,16 +294,19 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
             </>
           )}
           {link.visit_count > 0 && (
-            <Link href={`/stats?id=${link.id}`}>
-              <ALink title="View stats" forButton>
-                <Action
-                  name="pieChart"
-                  stroke={Colors.PieIcon}
-                  strokeWidth="2.5"
-                  backgroundColor={Colors.PieIconBg}
-                />
-              </ALink>
-            </Link>
+            <ALink
+              href={`/stats?id=${link.id}`}
+              title="View stats"
+              forButton
+              isNextLink
+            >
+              <Action
+                name="pieChart"
+                stroke={Colors.PieIcon}
+                strokeWidth="2.5"
+                backgroundColor={Colors.PieIconBg}
+              />
+            </ALink>
           )}
           <Action
             name="qrcode"
@@ -355,7 +375,7 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
                   />
                 </Flex>
               </Col>
-              <Col alignItems="flex-start">
+              <Col alignItems="flex-start" mr={3}>
                 <Text
                   {...label("address")}
                   as="label"
@@ -376,6 +396,33 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
                     pl={[3, 24]}
                     pr={[3, 24]}
                     required
+                  />
+                </Flex>
+              </Col>
+              <Col alignItems="flex-start">
+                <Text
+                  {...label("password")}
+                  as="label"
+                  mb={2}
+                  fontSize={[14, 15]}
+                  bold
+                >
+                  Password
+                </Text>
+                <Flex as="form">
+                  <TextInput
+                    {...password({
+                      name: "password"
+                    })}
+                    placeholder={link.password ? "••••••••" : "Password..."}
+                    autocomplete="off"
+                    data-lpignore
+                    pl={[3, 24]}
+                    pr={[3, 24]}
+                    placeholderSize={[13, 14]}
+                    fontSize={[14, 15]}
+                    height={[40, 44]}
+                    width={[1, 210, 240]}
                   />
                 </Flex>
               </Col>
@@ -473,7 +520,7 @@ const Row: FC<RowProps> = ({ index, link, setDeleteModal }) => {
           </H2>
           <Text mb={24} textAlign="center">
             Are you sure do you want to ban the link{" "}
-            <Span bold>"{removeProtocol(link.link)}"</Span>?
+            <Span bold>&quot;{removeProtocol(link.link)}&quot;</Span>?
           </Text>
           <RowCenter>
             <Checkbox {...checkbox("user")} label="User" mb={12} />
@@ -516,13 +563,16 @@ interface Form {
 }
 
 const LinksTable: FC = () => {
-  const isAdmin = useStoreState(s => s.auth.isAdmin);
-  const links = useStoreState(s => s.links);
-  const { get, remove } = useStoreActions(s => s.links);
+  const isAdmin = useStoreState((s) => s.auth.isAdmin);
+  const links = useStoreState((s) => s.links);
+  const { get, remove, resetVisitCount } = useStoreActions((s) => s.links);
   const [tableMessage, setTableMessage] = useState("No links to show.");
   const [deleteModal, setDeleteModal] = useState(-1);
+  const [resetVisitCountModal, setResetVisitCountModal] = useState(-1);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [deleteMessage, setDeleteMessage] = useMessage();
+  const [resetMessage, setResetMessage] = useMessage();
   const [formState, { label, checkbox, text }] = useFormState<Form>(
     { skip: "0", limit: "10", all: false },
     { withIds: true }
@@ -530,14 +580,15 @@ const LinksTable: FC = () => {
 
   const options = formState.values;
   const linkToDelete = links.items[deleteModal];
+  const linkToReset = links.items[resetVisitCountModal];
 
   useEffect(() => {
-    get(options).catch(err =>
+    get(options).catch((err) =>
       setTableMessage(err?.response?.data?.error || "An error occurred.")
     );
-  }, [options.limit, options.skip, options.all]);
+  }, [options, get]);
 
-  const onSubmit = e => {
+  const onSubmit = (e) => {
     e.preventDefault();
     get(options);
   };
@@ -554,6 +605,18 @@ const LinksTable: FC = () => {
     setDeleteLoading(false);
   };
 
+  const onReset = async () => {
+    setResetLoading(true);
+    try {
+      await resetVisitCount(linkToReset.id);
+      await get(options);
+      setResetVisitCountModal(-1);
+    } catch (err) {
+      setResetMessage(errorMessage(err));
+    }
+    setResetLoading(false);
+  };
+
   const onNavChange = (nextPage: number) => () => {
     formState.setField("skip", (parseInt(options.skip) + nextPage).toString());
   };
@@ -566,7 +629,7 @@ const LinksTable: FC = () => {
       flexShrink={1}
     >
       <Flex as="ul" m={0} p={0} style={{ listStyle: "none" }}>
-        {["10", "25", "50"].map(c => (
+        {["10", "25", "50"].map((c) => (
           <Flex key={c} ml={[10, 12]}>
             <NavButton
               disabled={options.limit === c}
@@ -613,7 +676,7 @@ const LinksTable: FC = () => {
       <H2 mb={3} light>
         Recent shortened links.
       </H2>
-      <Table scrollWidth="800px">
+      <Table scrollWidth="1000px">
         <thead>
           <Tr justifyContent="space-between">
             <Th flexGrow={1} flexShrink={1}>
@@ -668,6 +731,7 @@ const LinksTable: FC = () => {
               {links.items.map((link, index) => (
                 <Row
                   setDeleteModal={setDeleteModal}
+                  setResetVisitCountModal={setResetVisitCountModal}
                   index={index}
                   link={link}
                   key={link.id}
@@ -692,7 +756,7 @@ const LinksTable: FC = () => {
             </H2>
             <Text textAlign="center">
               Are you sure do you want to delete the link{" "}
-              <Span bold>"{removeProtocol(linkToDelete.link)}"</Span>?
+              <Span bold>&quot;{removeProtocol(linkToDelete.link)}&quot;</Span>?
             </Text>
             <Flex justifyContent="center" mt={44}>
               {deleteLoading ? (
@@ -715,6 +779,48 @@ const LinksTable: FC = () => {
                   <Button color="red" ml={3} onClick={onDelete}>
                     <Icon name="trash" stroke="white" mr={2} />
                     Delete
+                  </Button>
+                </>
+              )}
+            </Flex>
+          </>
+        )}
+      </Modal>
+      <Modal
+        id="reset-custom-domain"
+        show={resetVisitCountModal > -1}
+        closeHandler={() => setResetVisitCountModal(-1)}
+      >
+        {linkToReset && (
+          <>
+            <H2 mb={24} textAlign="center" bold>
+              Reset link?
+            </H2>
+            <Text textAlign="center">
+              Are you sure you want to reset the view count of the link{" "}
+              <Span bold>&quot;{removeProtocol(linkToReset.link)}&quot;</Span>?
+            </Text>
+            <Flex justifyContent="center" mt={44}>
+              {resetLoading ? (
+                <>
+                  <Icon name="spinner" size={20} stroke={Colors.Spinner} />
+                </>
+              ) : resetMessage.text ? (
+                <Text fontSize={15} color={resetMessage.color}>
+                  {resetMessage.text}
+                </Text>
+              ) : (
+                <>
+                  <Button
+                    color="gray"
+                    mr={3}
+                    onClick={() => setResetVisitCountModal(-1)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button color="red" ml={3} onClick={onReset}>
+                    <Icon name="reset" stroke="white" mr={2} />
+                    Reset
                   </Button>
                 </>
               )}

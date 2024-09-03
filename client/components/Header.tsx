@@ -1,9 +1,9 @@
-import { Flex } from "reflexbox/styled-components";
+import { Flex } from "rebass/styled-components";
 import getConfig from "next/config";
 import React, { FC } from "react";
 import Router from "next/router";
 import useMedia from "use-media";
-import Link from "next/link";
+import Image from "next/image";
 
 import { DISALLOW_REGISTRATION } from "../consts";
 import { useStoreState } from "../store";
@@ -43,57 +43,51 @@ const LogoImage = styled.div`
     }
   }
 
-  img {
-    width: 18px;
-    margin-right: 11px;
+  span {
+    margin-right: 10px !important;
   }
 `;
 
 const Header: FC = () => {
-  const { isAuthenticated, isAdmin } = useStoreState(s => s.auth);
+  const { isAuthenticated, isAdmin } = useStoreState((s) => s.auth);
   const isMobile = useMedia({ maxWidth: 640 });
 
   const login = !isAuthenticated && (
     <Li>
-      <Link href="/login">
-        <ALink
-          href="/login"
-          title={!DISALLOW_REGISTRATION ? "login / signup" : "login"}
-          forButton
-        >
-          <Button height={[32, 40]}>
-            {!DISALLOW_REGISTRATION ? "Log in / Sign up" : "Log in"}
-          </Button>
-        </ALink>
-      </Link>
+      <ALink
+        href="/login"
+        title={!DISALLOW_REGISTRATION ? "login / signup" : "login"}
+        forButton
+        isNextLink
+      >
+        <Button height={[32, 40]}>
+          {!DISALLOW_REGISTRATION ? "Log in / Sign up" : "Log in"}
+        </Button>
+      </ALink>
     </Li>
   );
   const logout = isAuthenticated && (
     <Li>
-      <Link href="/logout">
-        <ALink href="/logout" title="logout" fontSize={[14, 16]}>
-          Log out
-        </ALink>
-      </Link>
+      <ALink href="/logout" title="logout" fontSize={[14, 16]} isNextLink>
+        Log out
+      </ALink>
     </Li>
   );
   const settings = isAuthenticated && (
     <Li>
-      <Link href="/settings">
-        <ALink href="/settings" title="Settings" forButton>
-          <Button height={[32, 40]}>Settings</Button>
-        </ALink>
-      </Link>
+      <ALink href="/settings" title="Settings" forButton isNextLink>
+        <Button height={[32, 40]}>Settings</Button>
+      </ALink>
     </Li>
   );
 
   const adminLink = isAuthenticated && isAdmin && (
     <Li>
-      <Link href="/admin">
+      <ALink href="/admin">
         <ALink href="/admin" title="Admin" forButton>
           <Button height={[32, 40]}>Admin</Button>
         </ALink>
-      </Link>
+      </ALink>
     </Li>
   );
 
@@ -112,27 +106,36 @@ const Header: FC = () => {
         alignItems={["flex-start", "stretch"]}
       >
         <LogoImage>
-          <a
+          <ALink
             href="/"
             title="Homepage"
-            onClick={e => {
+            onClick={(e) => {
               e.preventDefault();
               if (window.location.pathname !== "/") Router.push("/");
             }}
+            forButton
+            isNextLink
           >
-            <img src="/images/logo.svg" alt="" />
+            <Image
+              src="/images/logo.svg"
+              alt="kutt logo"
+              width={18}
+              height={24}
+            />
             {publicRuntimeConfig.SITE_NAME}
-          </a>
+          </ALink>
         </LogoImage>
+
         {!isMobile && (
           <Flex
             style={{ listStyle: "none" }}
             display={["none", "flex"]}
             alignItems="flex-end"
             as="ul"
-            mb="3px"
             m={0}
-            p={0}
+            px={0}
+            pt={0}
+            pb="2px"
           >
             <Li>
               <ALink
@@ -146,11 +149,14 @@ const Header: FC = () => {
               </ALink>
             </Li>
             <Li>
-              <Link href="/report">
-                <ALink href="/report" title="Report abuse" fontSize={[14, 16]}>
-                  Report
-                </ALink>
-              </Link>
+              <ALink
+                href="/report"
+                title="Report abuse"
+                fontSize={[14, 16]}
+                isNextLink
+              >
+                Report
+              </ALink>
             </Li>
           </Flex>
         )}
@@ -162,15 +168,20 @@ const Header: FC = () => {
         as="ul"
         style={{ listStyle: "none" }}
       >
-        <Li>
-          <Flex display={["flex", "none"]}>
-            <Link href="/report">
-              <ALink href="/report" title="Report" fontSize={[14, 16]}>
+        {isMobile && (
+          <Li>
+            <Flex>
+              <ALink
+                href="/report"
+                title="Report"
+                fontSize={[14, 16]}
+                isNextLink
+              >
                 Report
               </ALink>
-            </Link>
-          </Flex>
-        </Li>
+            </Flex>
+          </Li>
+        )}
         {logout}
         {settings}
         {login}
