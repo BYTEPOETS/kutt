@@ -35,7 +35,6 @@ const LogoImage = styled.div`
     text-decoration: none;
     color: inherit;
     transition: border-color 0.2s ease-out;
-    padding: 0;
   }
 
   @media only screen and (max-width: 488px) {
@@ -50,7 +49,7 @@ const LogoImage = styled.div`
 `;
 
 const Header: FC = () => {
-  const { isAuthenticated } = useStoreState((s) => s.auth);
+  const { isAuthenticated, isAdmin } = useStoreState((s) => s.auth);
   const isMobile = useMedia({ maxWidth: 640 });
 
   const login = !isAuthenticated && (
@@ -78,6 +77,14 @@ const Header: FC = () => {
     <Li>
       <ALink href="/settings" title="Settings" forButton isNextLink>
         <Button height={[32, 40]}>Settings</Button>
+      </ALink>
+    </Li>
+  );
+
+  const adminLink = isAuthenticated && isAdmin && (
+    <Li>
+      <ALink href="/admin" title="Admin" forButton>
+        <Button height={[32, 40]}>Admin</Button>
       </ALink>
     </Li>
   );
@@ -176,6 +183,7 @@ const Header: FC = () => {
         {logout}
         {settings}
         {login}
+        {adminLink}
       </RowCenterV>
     </Flex>
   );
